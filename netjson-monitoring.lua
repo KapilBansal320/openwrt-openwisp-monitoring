@@ -44,7 +44,7 @@ end
 -- parse /proc/net/arp
 function parse_arp()
     arp_info = {}
-    for line in io.lines('/proc/net/arp 2> /dev/null') do
+    for line in io.popen('cat /proc/net/arp 2> /dev/null'):lines() do
         if line:sub(1, 10) ~= 'IP address' then
             ip, hw, flags, mac, mask, dev = line:match("(%S+)%s+(%S+)%s+(%S+)%s+(%S+)%s+(%S+)%s+(%S+)")
             table.insert(arp_info, {
