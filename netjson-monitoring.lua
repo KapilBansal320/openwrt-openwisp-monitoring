@@ -42,6 +42,22 @@ local function starts_with(str, start)
     return str:sub(1, #start) == start
 end
 
+function is_table_empty(table_)
+    return not table_ or next(table_) == nil
+end
+
+function array_concat(source, destination)
+    table.foreach(source, function(key, value)
+        table.insert(destination, value)
+    end)
+end
+
+function dict_merge(source, destination)
+    table.foreach(source, function(key, value)
+        destination[key] = value
+    end)
+end
+
 function parse_dhcp_lease_file(path, leases)
     local f = io.open(path, 'r')
     if not f then
@@ -76,10 +92,6 @@ function get_dhcp_leases()
         end
     end
     return leases
-end
-
-function is_table_empty(table_)
-    return not table_ or next(table_) == nil
 end
 
 function parse_hostapd_clients(clients)
@@ -333,18 +345,6 @@ function get_interface_info(name, netjson_interface)
         end
     end
     return info
-end
-
-function array_concat(source, destination)
-    table.foreach(source, function(key, value)
-        table.insert(destination, value)
-    end)
-end
-
-function dict_merge(source, destination)
-    table.foreach(source, function(key, value)
-        destination[key] = value
-    end)
 end
 
 -- collect interface addresses

@@ -36,6 +36,7 @@ function netjson.get_ip_neigh_json()
     return arp_info
 end
 
+
 function netjson.get_ip_neigh()
     arp_info = {}
     output = io.popen('ip neigh 2> /dev/null')
@@ -52,6 +53,7 @@ function netjson.get_ip_neigh()
     end
     return arp_info
 end
+
 
 function netjson.get_neighbors()
     arp_table = netjson.get_ip_neigh_json()

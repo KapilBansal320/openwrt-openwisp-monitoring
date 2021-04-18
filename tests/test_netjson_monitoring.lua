@@ -2,7 +2,7 @@ local lu = require('luaunit')
 
 local neighbor = require('neighbors_functions')
 
-local test_file_dir = 'netjson-monitoring/tests/test_files/'
+local test_file_dir = 'tests/test_files/'
 
 io.popen = function(arg)
 	if arg == 'cat /proc/net/arp 2> /dev/null' then
