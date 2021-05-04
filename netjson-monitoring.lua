@@ -3,40 +3,13 @@
 -- and return it as NetJSON Output
 io = require('io')
 ubus_lib = require('ubus')
-neighbors_functions = require('neighbors_functions')
 cjson = require('cjson')
 nixio = require('nixio')
 uci = require('uci')
 uci_cursor = uci.cursor()
 
--- split function
-function split(str, pat)
-    local t = {}
-    local fpat = "(.-)" .. pat
-    local last_end = 1
-    local s, e, cap = str:find(fpat, 1)
-    while s do
-        if s ~= 1 or cap ~= "" then
-            table.insert(t, cap)
-        end
-        last_end = e + 1
-        s, e, cap = str:find(fpat, last_end)
-    end
-    if last_end <= #str then
-        cap = str:sub(last_end)
-        table.insert(t, cap)
-    end
-    return t
-end
-
-local function has_value(tab, val)
-    for index, value in ipairs(tab) do
-        if value == val then
-            return true
-        end
-    end
-    return false
-end
+neighbors_functions = require('neighbors_functions')
+basic_functions = require('basic_functions')
 
 local function starts_with(str, start)
     return str:sub(1, #start) == start
@@ -143,7 +116,7 @@ iwinfo_modes = {
 system_info = ubus:call('system', 'info', {})
 board = ubus:call('system', 'board', {})
 loadavg_output = io.popen('cat /proc/loadavg'):read()
-loadavg_output = split(loadavg_output, ' ')
+loadavg_output = basic_functions.split(loadavg_output, ' ')
 load_average = {tonumber(loadavg_output[1]), tonumber(loadavg_output[2]), tonumber(loadavg_output[3])}
 
 function parse_disk_usage()
@@ -226,7 +199,7 @@ end
 traffic_monitored = arg[1]
 include_stats = {}
 if traffic_monitored and traffic_monitored ~= '*' then
-    traffic_monitored = split(traffic_monitored, ' ')
+    traffic_monitored = basic_functions.split(traffic_monitored, ' ')
     for i, name in pairs(traffic_monitored) do
         include_stats[name] = true
     end
@@ -388,7 +361,7 @@ function try.get_addresses(name)
                         proto = 'static'
                     else
                         ula = uci_cursor.get('network', 'globals', 'ula_prefix')
-                        ula_prefix = split(ula, '::')[1]
+                        ula_prefix = basic_functions.split(ula, '::')[1]
                         if starts_with(addr, ula_prefix) then
                             proto = 'static'
                         else
@@ -397,7 +370,7 @@ function try.get_addresses(name)
                     end
                 end
                 if family == 'ipv4' or family == 'ipv6' then
-                    if not has_value(addresses_list, addr) then
+                    if not basic_functions.has_value(addresses_list, addr) then
                         table.insert(addresses, {
                             address = addr,
                             mask = nixio_data[i].prefix,

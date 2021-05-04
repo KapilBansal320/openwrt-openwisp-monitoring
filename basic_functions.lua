@@ -1,8 +1,6 @@
-local inspect = require('inspect')
-
-basic_functions = {}
+functions = {}
 -- split function
-function basic_functions.split(str, pat)
+function functions.split(str, pat)
     local t = {}
     local fpat = "(.-)" .. pat
     local last_end = 1
@@ -21,7 +19,7 @@ function basic_functions.split(str, pat)
     return t
 end
 
-function basic_functions.has_value(tab, val)
+function functions.has_value(tab, val)
     for index, value in ipairs(tab) do
         if value == val then
             return true
@@ -30,24 +28,24 @@ function basic_functions.has_value(tab, val)
     return false
 end
 
-function basic_functions.starts_with(str, start)
+function functions.starts_with(str, start)
     return str:sub(1, #start) == start
 end
 
-function basic_functions.is_table_empty(table_)
+function functions.is_table_empty(table_)
     return not table_ or next(table_) == nil
 end
 
-function basic_functions.array_concat(source, destination)
+function functions.array_concat(source, destination)
     table.foreach(source, function(key, value)
         table.insert(destination, value)
     end)
 end
 
-function basic_functions.dict_merge(source, destination)
+function functions.dict_merge(source, destination)
     table.foreach(source, function(key, value)
         destination[key] = value
     end)
 end
 
-return basic_functions
+return functions

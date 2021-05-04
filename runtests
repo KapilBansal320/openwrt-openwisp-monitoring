@@ -1,0 +1,5 @@
+#!/bin/bash
+set -e
+cd tests/
+lua test_basic_functions.lua -v
+lua test_netjson_monitoring.lua -v

@@ -1,8 +1,10 @@
-local lu = require('luaunit')
+package.path = package.path .. ";../?.lua"
+
+local luaunit = require('luaunit')
 
 local neighbor = require('neighbors_functions')
 
-local test_file_dir = 'tests/test_files/'
+local test_file_dir = './test_files/'
 
 io.popen = function(arg)
 	if arg == 'cat /proc/net/arp 2> /dev/null' then
@@ -32,13 +34,13 @@ sample_ip_neigh = {
 
 function testArpTable()
 
-	lu.assertEquals(neighbor.parse_arp(), sample_parse_arp)
+	luaunit.assertEquals(neighbor.parse_arp(), sample_parse_arp)
 
-	lu.assertEquals(neighbor.get_ip_neigh_json(), sample_ip_neigh)
+	luaunit.assertEquals(neighbor.get_ip_neigh_json(), sample_ip_neigh)
 
-	lu.assertEquals(neighbor.get_ip_neigh(), sample_ip_neigh)
+	luaunit.assertEquals(neighbor.get_ip_neigh(), sample_ip_neigh)
 
-	lu.assertEquals(neighbor.get_neighbors(), sample_ip_neigh)
+	luaunit.assertEquals(neighbor.get_neighbors(), sample_ip_neigh)
 end
 
-os.exit( lu.LuaUnit.run() )
+os.exit( luaunit.LuaUnit.run() )
