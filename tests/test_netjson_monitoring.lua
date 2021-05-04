@@ -31,18 +31,13 @@ sample_ip_neigh = {
 
 
 function testArpTable()
+
 	lu.assertEquals(neighbor.parse_arp(), sample_parse_arp)
-end
 
-function testIpNeighJson()
 	lu.assertEquals(neighbor.get_ip_neigh_json(), sample_ip_neigh)
-end
 
-function testIpNeigh()
 	lu.assertEquals(neighbor.get_ip_neigh(), sample_ip_neigh)
-end
 
-function testgetNeighbor()
 	lu.assertEquals(neighbor.get_neighbors(), sample_ip_neigh)
 end
 

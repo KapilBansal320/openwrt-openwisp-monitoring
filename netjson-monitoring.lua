@@ -348,7 +348,7 @@ function get_interface_info(name, netjson_interface)
 end
 
 -- collect interface addresses
-function get_addresses(name)
+function try.get_addresses(name)
     addresses = {}
     interface_list = interface_data['interface']
     addresses_list = {}
