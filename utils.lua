@@ -40,12 +40,14 @@ function functions.array_concat(source, destination)
     table.foreach(source, function(key, value)
         table.insert(destination, value)
     end)
+    return destination
 end
 
 function functions.dict_merge(source, destination)
     table.foreach(source, function(key, value)
         destination[key] = value
     end)
+    return destination
 end
 
 return functions

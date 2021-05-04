@@ -9,27 +9,8 @@ uci = require('uci')
 uci_cursor = uci.cursor()
 
 neighbors_functions = require('neighbors_functions')
-basic_functions = require('basic_functions')
+utils = require('utils')
 
-local function starts_with(str, start)
-    return str:sub(1, #start) == start
-end
-
-function is_table_empty(table_)
-    return not table_ or next(table_) == nil
-end
-
-function array_concat(source, destination)
-    table.foreach(source, function(key, value)
-        table.insert(destination, value)
-    end)
-end
-
-function dict_merge(source, destination)
-    table.foreach(source, function(key, value)
-        destination[key] = value
-    end)
-end
 
 function parse_dhcp_lease_file(path, leases)
     local f = io.open(path, 'r')
@@ -116,7 +97,7 @@ iwinfo_modes = {
 system_info = ubus:call('system', 'info', {})
 board = ubus:call('system', 'board', {})
 loadavg_output = io.popen('cat /proc/loadavg'):read()
-loadavg_output = basic_functions.split(loadavg_output, ' ')
+loadavg_output = utils.split(loadavg_output, ' ')
 load_average = {tonumber(loadavg_output[1]), tonumber(loadavg_output[2]), tonumber(loadavg_output[3])}
 
 function parse_disk_usage()
@@ -156,7 +137,7 @@ function get_vpn_interfaces()
     local items = uci_cursor:get_all('openvpn')
     local vpn_interfaces = {}
 
-    if is_table_empty(items) then
+    if utils.is_table_empty(items) then
         return {}
     end
 
@@ -186,12 +167,12 @@ netjson = {
 }
 
 dhcp_leases = get_dhcp_leases()
-if not is_table_empty(dhcp_leases) then
+if not utils.is_table_empty(dhcp_leases) then
     netjson.dhcp_leases = dhcp_leases
 end
 
 neighbors = neighbors_functions.get_neighbors()
-if not is_table_empty(neighbors) then
+if not utils.is_table_empty(neighbors) then
     netjson.neighbors = neighbors
 end
 
@@ -199,7 +180,7 @@ end
 traffic_monitored = arg[1]
 include_stats = {}
 if traffic_monitored and traffic_monitored ~= '*' then
-    traffic_monitored = basic_functions.split(traffic_monitored, ' ')
+    traffic_monitored = utils.split(traffic_monitored, ' ')
     for i, name in pairs(traffic_monitored) do
         include_stats[name] = true
     end
@@ -253,13 +234,13 @@ specialized_interfaces = {
         if general and pcall(function () general = cjson.decode(general) end) then
             general = general.modem
 
-            if not is_table_empty(general['3gpp']) then
+            if not utils.is_table_empty(general['3gpp']) then
                 info.imei = general['3gpp'].imei
                 info.operator_name = general['3gpp']['operator-name']
                 info.operator_code = general['3gpp']['operator-code']
             end
 
-            if not is_table_empty(general.generic) then
+            if not utils.is_table_empty(general.generic) then
                 info.manufacturer = general.generic.manufacturer
                 info.model = general.generic.model
                 info.connection_status = general.generic.state
@@ -270,7 +251,7 @@ specialized_interfaces = {
         local signal = io.popen('mmcli --output-json -m '..modem..' --signal-get'):read()
         if signal and pcall(function () signal = cjson.decode(signal) end) then
             -- only send data if not empty to avoid generating too much traffic
-            if not is_table_empty(signal.modem) and not is_table_empty(signal.modem.signal) then
+            if not utils.is_table_empty(signal.modem) and not utils.is_table_empty(signal.modem.signal) then
                 -- omit refresh rate
                 signal.modem.signal.refresh = nil
                 info.signal = {}
@@ -281,7 +262,7 @@ specialized_interfaces = {
                             -- convert to number
                             section_values[key] = tonumber(value)
                             -- store in info
-                            if is_table_empty(info[section_key]) then
+                            if utils.is_table_empty(info[section_key]) then
                               info.signal[section_key] = section_values
                             end
                         end
@@ -321,7 +302,7 @@ function get_interface_info(name, netjson_interface)
 end
 
 -- collect interface addresses
-function try.get_addresses(name)
+function get_addresses(name)
     addresses = {}
     interface_list = interface_data['interface']
     addresses_list = {}
@@ -357,12 +338,12 @@ function try.get_addresses(name)
                     proto = 'dhcp'
                 elseif family == 'inet6' then
                     family = 'ipv6'
-                    if starts_with(addr, 'fe80') then
+                    if utils.starts_with(addr, 'fe80') then
                         proto = 'static'
                     else
                         ula = uci_cursor.get('network', 'globals', 'ula_prefix')
-                        ula_prefix = basic_functions.split(ula, '::')[1]
-                        if starts_with(addr, ula_prefix) then
+                        ula_prefix = utils.split(ula, '::')[1]
+                        if utils.starts_with(addr, ula_prefix) then
                             proto = 'static'
                         else
                             proto = 'dhcp'
@@ -370,7 +351,7 @@ function try.get_addresses(name)
                     end
                 end
                 if family == 'ipv4' or family == 'ipv6' then
-                    if not basic_functions.has_value(addresses_list, addr) then
+                    if not utils.has_value(addresses_list, addr) then
                         table.insert(addresses, {
                             address = addr,
                             mask = nixio_data[i].prefix,
@@ -460,7 +441,7 @@ for name, interface in pairs(network_status) do
             multicast = interface.multicast
         }
         if wireless_interfaces[name] then
-            dict_merge(wireless_interfaces[name], netjson_interface)
+            utils.dict_merge(wireless_interfaces[name], netjson_interface)
             interface.type = netjson_interface.type
         end
         if interface.type == 'Network device' then
@@ -499,10 +480,10 @@ for name, interface in pairs(network_status) do
         table.insert(interfaces, netjson_interface)
         -- DNS info is independent from interface
         if info.dns_servers then
-            array_concat(info.dns_servers, dns_servers)
+            utils.array_concat(info.dns_servers, dns_servers)
         end
         if info.dns_search then
-            array_concat(info.dns_search, dns_search)
+            utils.array_concat(info.dns_search, dns_search)
         end
     end
 end
