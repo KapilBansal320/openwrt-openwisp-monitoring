@@ -4,26 +4,7 @@
 io = require('io')
 ubus_lib = require('ubus')
 cjson = require('cjson')
-
--- split function
-function split(str, pat)
-    local t = {}
-    local fpat = "(.-)" .. pat
-    local last_end = 1
-    local s, e, cap = str:find(fpat, 1)
-    while s do
-        if s ~= 1 or cap ~= "" then
-            table.insert(t, cap)
-        end
-        last_end = e + 1
-        s, e, cap = str:find(fpat, last_end)
-    end
-    if last_end <= #str then
-        cap = str:sub(last_end)
-        table.insert(t, cap)
-    end
-    return t
-end
+utils = require('utils')
 
 ubus = ubus_lib.connect()
 if not ubus then
@@ -34,7 +15,7 @@ end
 system_info = ubus:call('system', 'info', {})
 board = ubus:call('system', 'board', {})
 loadavg_output = io.popen('cat /proc/loadavg'):read()
-loadavg_output = split(loadavg_output, ' ')
+loadavg_output = utils.split(loadavg_output, ' ')
 load_average = {tonumber(loadavg_output[1]), tonumber(loadavg_output[2]), tonumber(loadavg_output[3])}
 
 -- init netjson data structure
@@ -56,7 +37,7 @@ netjson = {
 monitored_interfaces = arg[1]
 monitored = {}
 if monitored_interfaces then
-    monitored_interfaces = split(monitored_interfaces, ' ')
+    monitored_interfaces = utils.split(monitored_interfaces, ' ')
     for i, name in pairs(monitored_interfaces) do
         monitored[name] = true
     end

@@ -33,7 +33,7 @@ function functions.starts_with(str, start)
 end
 
 function functions.is_table_empty(table_)
-    return not table_ or next(table_) == nil
+    return not table_ or not next(table_)
 end
 
 function functions.array_concat(source, destination)

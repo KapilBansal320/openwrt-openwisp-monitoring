@@ -401,7 +401,7 @@ for radio_name, radio in pairs(wireless_status) do
                   clients = hostapd_output.clients
               end
             end
-            if clients and next(clients) ~= nil then
+            if not utils.is_table_empty(clients) then
                 netjson_interface.wireless.clients = netjson_clients(clients, is_mesh)
             end
             wireless_interfaces[name] = netjson_interface
