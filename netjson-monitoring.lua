@@ -36,7 +36,7 @@ function get_dhcp_leases()
     local dhcp_configs = uci_cursor:get_all('dhcp')
     local leases = {}
 
-    if not dhcp_configs or not next(dhcp_configs) then
+    if utils.is_table_empty(dhcp_configs) then
         return nil
     end
 
@@ -190,15 +190,6 @@ function is_excluded(name)
     return name == 'lo'
 end
 
-function find_default_gateway(routes)
-    for i = 1, #routes do
-        if routes[i].target == '0.0.0.0' then
-            return routes[i].nexthop
-        end
-    end
-    return nil
-end
-
 -- collect device data
 network_status = ubus:call('network.device', 'status', {})
 wireless_status = ubus:call('network.wireless', 'status', {})
@@ -209,21 +200,6 @@ wireless_interfaces = {}
 interfaces = {}
 dns_servers = {}
 dns_search = {}
-
-function new_address_array(address, interface, family)
-    proto = interface['proto']
-    if proto == 'dhcpv6' then
-        proto = 'dhcp'
-    end
-    new_address = {
-        address = address['address'],
-        mask = address['mask'],
-        proto = proto,
-        family = family,
-        gateway = find_default_gateway(interface.route)
-    }
-    return new_address
-end
 
 specialized_interfaces = {
     modemmanager = function(name, interface)
