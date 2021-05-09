@@ -4,3 +4,4 @@ cd tests/
 lua test_interface.lua -v
 lua test_utils.lua -v
 lua test_netjson_monitoring.lua -v
+lua test_miscellaneous.lua -v

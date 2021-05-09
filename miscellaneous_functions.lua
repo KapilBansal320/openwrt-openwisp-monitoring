@@ -4,6 +4,7 @@ utils = require('utils')
 uci = require('uci')
 uci_cursor = uci.cursor()
 
+miscellaneous_functions = {}
 
 function parse_hostapd_clients(clients)
   local data = {}
@@ -32,7 +33,7 @@ function parse_iwinfo_clients(clients)
   return data
 end
 
-function parse_disk_usage()
+function miscellaneous_functions.parse_disk_usage()
     file = io.popen('df')
     disk_usage_info = {}
     for line in file:lines() do
@@ -57,7 +58,7 @@ function parse_disk_usage()
     return disk_usage_info
 end
 
-function get_cpus()
+function miscellaneous_functions.get_cpus()
     processors = io.popen('cat /proc/cpuinfo | grep -c processor')
     cpus = tonumber(processors:read('*a'))
     processors:close()
@@ -80,3 +81,5 @@ function get_vpn_interfaces()
     end
     return vpn_interfaces
 end
+
+return miscellaneous_functions
