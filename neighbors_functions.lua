@@ -1,3 +1,5 @@
+#!/usr/bin/env lua
+
 local cjson = require('cjson')
 
 netjson = {}

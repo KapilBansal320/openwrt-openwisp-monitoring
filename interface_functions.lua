@@ -1,3 +1,5 @@
+#!/usr/bin/env lua
+
 utils = require('utils')
 nixio = require('nixio')
 ubus_lib = require('ubus')
@@ -9,6 +11,56 @@ ubus = ubus_lib.connect()
 
 interface_data = ubus:call('network.interface', 'dump', {})
 nixio_data = nixio.getifaddrs()
+
+specialized_interfaces = {
+    modemmanager = function(name, interface)
+        local modem = uci_cursor.get('network', interface['interface'], 'device')
+        local info = {}
+
+        local general = io.popen('mmcli --output-json -m '..modem):read("*a")
+        if general and pcall(function () general = cjson.decode(general) end) then
+            general = general.modem
+
+            if not utils.is_table_empty(general['3gpp']) then
+                info.imei = general['3gpp'].imei
+                info.operator_name = general['3gpp']['operator-name']
+                info.operator_code = general['3gpp']['operator-code']
+            end
+
+            if not utils.is_table_empty(general.generic) then
+                info.manufacturer = general.generic.manufacturer
+                info.model = general.generic.model
+                info.connection_status = general.generic.state
+                info.power_status = general.generic['power-state']
+            end
+        end
+
+        local signal = io.popen('mmcli --output-json -m '..modem..' --signal-get'):read()
+        if signal and pcall(function () signal = cjson.decode(signal) end) then
+            -- only send data if not empty to avoid generating too much traffic
+            if not utils.is_table_empty(signal.modem) and not utils.is_table_empty(signal.modem.signal) then
+                -- omit refresh rate
+                signal.modem.signal.refresh = nil
+                info.signal = {}
+                -- collect section only if not empty
+                for section_key, section_values in pairs(signal.modem.signal) do
+                    for key, value in pairs(section_values) do
+                        if value ~= '--' then
+                            -- convert to number
+                            section_values[key] = tonumber(value)
+                            -- store in info
+                            if utils.is_table_empty(info[section_key]) then
+                              info.signal[section_key] = section_values
+                            end
+                        end
+                    end
+                end
+            end
+        end
+
+        return {type='modem-manager', mobile=info}
+    end
+}
 
 function find_default_gateway(routes)
     for i = 1, #routes do
@@ -97,6 +149,32 @@ function get_addresses(name)
         end
     end
     return addresses
+end
+
+function get_interface_info(name, netjson_interface)
+    info = {
+        dns_search = nil,
+        dns_servers = nil
+    }
+    for _, interface in pairs(interface_data['interface']) do
+        if interface['l3_device'] == name then
+            if next(interface['dns-search']) then
+                info.dns_search = interface['dns-search']
+            end
+            if next(interface['dns-server']) then
+                info.dns_servers = interface['dns-server']
+            end
+            if netjson_interface.type == 'bridge' then
+                info.stp = uci_cursor.get('network', interface['interface'], 'stp') == '1'
+            end
+            -- collect specialized info if available
+            local specialized_info = specialized_interfaces[interface.proto]
+            if specialized_info then
+                info.specialized = specialized_info(name, interface)
+            end
+        end
+    end
+    return info
 end
 
 print(get_addresses('eth2'))
