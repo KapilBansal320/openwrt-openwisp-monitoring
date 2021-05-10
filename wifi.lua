@@ -2,6 +2,11 @@
 
 wifi = {}
 
+-- takes ubus wireless.status clients output and converts it to NetJSON
+function netjson_clients(clients, is_mesh)
+    return (is_mesh and wifi.parse_iwinfo_clients(clients) or wifi.parse_hostapd_clients(clients))
+end
+
 function wifi.parse_hostapd_clients(clients)
   local data = {}
   for mac, properties in pairs(clients) do

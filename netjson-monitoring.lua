@@ -1,7 +1,6 @@
 #!/usr/bin/env lua
 -- retrieve monitoring information
 -- and return it as NetJSON Output
-io = require('io')
 ubus_lib = require('ubus')
 cjson = require('cjson')
 uci = require('uci')
@@ -13,11 +12,6 @@ dhcp = require('dhcp')
 wifi = require('wifi')
 neighbors_functions = require('neighbors')
 utils = require('utils')
-
--- takes ubus wireless.status clients output and converts it to NetJSON
-function netjson_clients(clients, is_mesh)
-    return (is_mesh and wifi.parse_iwinfo_clients(clients) or wifi.parse_hostapd_clients(clients))
-end
 
 ubus = ubus_lib.connect()
 if not ubus then
@@ -127,7 +121,7 @@ for radio_name, radio in pairs(wireless_status) do
               end
             end
             if not utils.is_table_empty(clients) then
-                netjson_interface.wireless.clients = netjson_clients(clients, is_mesh)
+                netjson_interface.wireless.clients = wifi.netjson_clients(clients, is_mesh)
             end
             wireless_interfaces[name] = netjson_interface
         end
