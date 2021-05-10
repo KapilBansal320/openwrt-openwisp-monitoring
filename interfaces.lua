@@ -2,11 +2,12 @@
 utils = require('utils')
 nixio = require('nixio')
 ubus_lib = require('ubus')
-
 ubus = ubus_lib.connect()
--- if not ubus then
---     error('Failed to connect to ubusd')
--- end
+if not ubus then
+    error('Failed to connect to ubusd')
+end
+
+interface_functions = {}
 
 interface_data = ubus:call('network.interface', 'dump', {})
 nixio_data = nixio.getifaddrs()
@@ -61,7 +62,7 @@ specialized_interfaces = {
     end
 }
 
-function find_default_gateway(routes)
+function interface_functions.find_default_gateway(routes)
     for i = 1, #routes do
         if routes[i].target == '0.0.0.0' then
             return routes[i].nexthop
@@ -70,7 +71,7 @@ function find_default_gateway(routes)
     return nil
 end
 
-function new_address_array(address, interface, family)
+function interface_functions.new_address_array(address, interface, family)
     proto = interface['proto']
     if proto == 'dhcpv6' then
         proto = 'dhcp'
@@ -86,7 +87,7 @@ function new_address_array(address, interface, family)
 end
 
 -- collect interface addresses
-function get_addresses(name)
+function interface_functions.get_addresses(name)
     addresses = {}
     interface_list = interface_data['interface']
     addresses_list = {}
@@ -150,7 +151,7 @@ function get_addresses(name)
     return addresses
 end
 
-function get_interface_info(name, netjson_interface)
+function interface_functions.get_interface_info(name, netjson_interface)
     info = {
         dns_search = nil,
         dns_servers = nil
@@ -176,7 +177,7 @@ function get_interface_info(name, netjson_interface)
     return info
 end
 
-function get_vpn_interfaces()
+function interface_functions.get_vpn_interfaces()
     -- only openvpn supported for now
     local items = uci_cursor:get_all('openvpn')
     local vpn_interfaces = {}
@@ -192,3 +193,5 @@ function get_vpn_interfaces()
     end
     return vpn_interfaces
 end
+
+return interface_functions
