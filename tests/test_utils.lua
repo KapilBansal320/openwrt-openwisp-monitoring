@@ -27,7 +27,7 @@ end
 function testStartsWith()
 	-- When string starts with the substring given
 	luaunit.assertEquals(utils.starts_with("OpenWISP", "Open"), true)
-	luaunit.assertEquals(utils.starts_with("NetJSon", "Net"), true)
+	luaunit.assertEquals(utils.starts_with("NetJSON", "Net"), true)
 
 	-- when string doesn't starts with the substring given
 	luaunit.assertEquals(utils.starts_with("OpenWISP", "Ov"), false)
@@ -50,8 +50,8 @@ function testArrayConcat()
 end
 
 function testDictMerge()
-	luaunit.assertEquals(utils.dict_merge({['1']='OpenWISP'},{['3']='NetJSon'}),  {["1"]="OpenWISP", ["3"]="NetJSon"})
-	luaunit.assertEquals(utils.dict_merge({['1']='OpenWISP'},{['1']='NetJSon'}),  {["1"]="OpenWISP"})
+	luaunit.assertEquals(utils.dict_merge({['1']='OpenWISP'},{['3']='NetJSON'}),  {["1"]="OpenWISP", ["3"]="NetJSON"})
+	luaunit.assertEquals(utils.dict_merge({['1']='OpenWISP'},{['1']='NetJSON'}),  {["1"]="OpenWISP"})
 end
 
 os.exit(luaunit.LuaUnit.run())

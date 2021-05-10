@@ -2,7 +2,7 @@ package.path = package.path .. ";../?.lua"
 
 local luaunit = require('luaunit')
 
-local neighbor = require('neighbors_functions')
+local neighbor = require('neighbors')
 
 local test_file_dir = './test_files/'
 

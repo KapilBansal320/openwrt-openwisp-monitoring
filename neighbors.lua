@@ -1,10 +1,9 @@
-#!/usr/bin/env lua
-
+-- retrieve neighbors information
 local cjson = require('cjson')
 
-netjson = {}
+neighbors = {}
 -- parse /proc/net/arp
-function netjson.parse_arp()
+function neighbors.parse_arp()
     arp_info = {}
     for line in io.popen('cat /proc/net/arp 2> /dev/null'):lines() do
         if line:sub(1, 10) ~= 'IP address' then
@@ -21,7 +20,7 @@ function netjson.parse_arp()
 end
 
 
-function netjson.get_ip_neigh_json()
+function neighbors.get_ip_neigh_json()
     arp_info = {}
     output = io.popen('ip -json neigh 2> /dev/null'):read()
     if output ~= nil and pcall(function () json_output = cjson.decode(output) end) then
@@ -39,7 +38,7 @@ function netjson.get_ip_neigh_json()
 end
 
 
-function netjson.get_ip_neigh()
+function neighbors.get_ip_neigh()
     arp_info = {}
     output = io.popen('ip neigh 2> /dev/null')
     for line in output:lines() do
@@ -57,15 +56,15 @@ function netjson.get_ip_neigh()
 end
 
 
-function netjson.get_neighbors()
-    arp_table = netjson.get_ip_neigh_json()
+function neighbors.get_neighbors()
+    arp_table = neighbors.get_ip_neigh_json()
     if next(arp_table) == nil then
-        arp_table = netjson.get_ip_neigh()
+        arp_table = neighbors.get_ip_neigh()
     end
     if next(arp_table) == nil then
-        arp_table = netjson.parse_arp()
+        arp_table = neighbors.parse_arp()
     end
     return arp_table
 end
 
-return netjson
+return neighbors

@@ -1,5 +1,4 @@
-#!/usr/bin/env lua
-
+-- retrieve interfaces information
 utils = require('utils')
 nixio = require('nixio')
 ubus_lib = require('ubus')
@@ -177,4 +176,19 @@ function get_interface_info(name, netjson_interface)
     return info
 end
 
-print(get_addresses('eth2'))
+function get_vpn_interfaces()
+    -- only openvpn supported for now
+    local items = uci_cursor:get_all('openvpn')
+    local vpn_interfaces = {}
+
+    if utils.is_table_empty(items) then
+        return {}
+    end
+
+    for name, config in pairs(items) do
+        if config and config.dev then
+            vpn_interfaces[config.dev] = true
+        end
+    end
+    return vpn_interfaces
+end

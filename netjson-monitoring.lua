@@ -4,55 +4,19 @@
 io = require('io')
 ubus_lib = require('ubus')
 cjson = require('cjson')
-nixio = require('nixio')
 uci = require('uci')
 uci_cursor = uci.cursor()
 
-interface_functions = require('interface_functions')
-miscellaneous_functions = require('miscellaneous_functions')
-neighbors_functions = require('neighbors_functions')
+interface_functions = require('interfaces')
+resources = require('resources')
+dhcp = require('dhcp')
+wifi = require('wifi')
+neighbors_functions = require('neighbors')
 utils = require('utils')
-
-
-function parse_dhcp_lease_file(path, leases)
-    local f = io.open(path, 'r')
-    if not f then
-        return leases
-    end
-
-    for line in f:lines() do
-        local expiry, mac, ip, name, id = line:match('(%S+)%s+(%S+)%s+(%S+)%s+(%S+)%s+(%S+)')
-        table.insert(leases, {
-            expiry = tonumber(expiry),
-            mac = mac,
-            ip = ip,
-            client_name = name,
-            client_id = id
-        })
-    end
-
-    return leases
-end
-
-function get_dhcp_leases()
-    local dhcp_configs = uci_cursor:get_all('dhcp')
-    local leases = {}
-
-    if utils.is_table_empty(dhcp_configs) then
-        return nil
-    end
-
-    for name, config in pairs(dhcp_configs) do
-        if config and config['.type'] == 'dnsmasq' and config.leasefile then
-            leases = parse_dhcp_lease_file(config.leasefile, leases)
-        end
-    end
-    return leases
-end
 
 -- takes ubus wireless.status clients output and converts it to NetJSON
 function netjson_clients(clients, is_mesh)
-    return (is_mesh and miscellaneous_functions.parse_iwinfo_clients(clients) or miscellaneous_functions.parse_hostapd_clients(clients))
+    return (is_mesh and wifi.parse_iwinfo_clients(clients) or wifi.parse_hostapd_clients(clients))
 end
 
 ubus = ubus_lib.connect()
@@ -88,12 +52,12 @@ netjson = {
         load = load_average,
         memory = system_info.memory,
         swap = system_info.swap,
-        cpus = miscellaneous_functions.get_cpus(),
-        disk = miscellaneous_functions.parse_disk_usage()
+        cpus = resources.get_cpus(),
+        disk = resources.parse_disk_usage()
     }
 }
 
-dhcp_leases = get_dhcp_leases()
+dhcp_leases = dhcp.get_dhcp_leases()
 if not utils.is_table_empty(dhcp_leases) then
     netjson.dhcp_leases = dhcp_leases
 end
@@ -120,7 +84,7 @@ end
 -- collect device data
 network_status = ubus:call('network.device', 'status', {})
 wireless_status = ubus:call('network.wireless', 'status', {})
-vpn_interfaces = miscellaneous_functions.get_vpn_interfaces()
+vpn_interfaces = interface_functions.get_vpn_interfaces()
 wireless_interfaces = {}
 interfaces = {}
 dns_servers = {}
