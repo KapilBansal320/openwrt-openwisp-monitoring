@@ -3,6 +3,9 @@ utils = require('utils')
 nixio = require('nixio')
 ubus_lib = require('ubus')
 ubus = ubus_lib.connect()
+uci = require('uci')
+
+uci_cursor = uci.cursor()
 if not ubus then
     error('Failed to connect to ubusd')
 end
@@ -81,7 +84,7 @@ function interface_functions.new_address_array(address, interface, family)
         mask = address['mask'],
         proto = proto,
         family = family,
-        gateway = find_default_gateway(interface.route)
+        gateway = interface_functions.find_default_gateway(interface.route)
     }
     return new_address
 end
