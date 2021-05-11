@@ -1,24 +1,34 @@
 package.path = package.path .. ";../?.lua"
+local inspect = require('inspect')
+local test_file_dir = './test_files/'
+
+local dhcp_data = require('test_files/dhcp_data')
+package.loaded.uci = {
+    cursor = function()
+        return {
+            get_all = function(...)
+            	return dhcp_data.config
+            end
+        }
+    end
+}
 
 local luaunit = require('luaunit')
 
-local dhcp = require('dhcp')
+local dhcp_functions = require('dhcp')
 
-local test_file_dir = './test_files/'
-
-uci_cursor.get_all = function(arg)
-	if arg == 'dhcp' then
-		return io.open(test_file_dir .. 'dhcp.txt')
-	end
-end
+local org_io = io.open
 
 io.open = function(arg)
 	if arg == '/tmp/dhcp.leases' then
-		return io.open(test_file_dir .. 'dhcp_leases.txt')
+		return org_io('./test_files/dhcp_leases.txt')
+	else
+		return org_io(arg)
+	end
+end
 
-
-function test_get_dhcp_leases()
-	
+function test_dhcp_leases()
+	luaunit.assertEquals(dhcp_functions.get_dhcp_leases(), dhcp_data.leases)
 end
 
 os.exit( luaunit.LuaUnit.run() )

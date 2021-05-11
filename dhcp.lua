@@ -1,17 +1,16 @@
 -- retrieve dhcp leases
 uci = require('uci')
 uci_cursor = uci.cursor()
-
+inspect = require('inspect')
 utils = require('utils')
 
-dhcp = {}
+dhcp_functions = {}
 
-function dhcp.parse_dhcp_lease_file(path, leases)
-    local f = io.open('tests/test_files/dhcp_leases.txt', 'r')
+function dhcp_functions.parse_dhcp_lease_file(path, leases)
+    local f = io.open(path, 'r')
     if not f then
         return leases
     end
-
     for line in f:lines() do
         local expiry, mac, ip, name, id = line:match('(%S+)%s+(%S+)%s+(%S+)%s+(%S+)%s+(%S+)')
         table.insert(leases, {
@@ -26,7 +25,7 @@ function dhcp.parse_dhcp_lease_file(path, leases)
     return leases
 end
 
-function dhcp.get_dhcp_leases()
+function dhcp_functions.get_dhcp_leases()
     local dhcp_configs = uci_cursor:get_all('dhcp')
     local leases = {}
 
@@ -36,10 +35,10 @@ function dhcp.get_dhcp_leases()
 
     for name, config in pairs(dhcp_configs) do
         if config and config['.type'] == 'dnsmasq' and config.leasefile then
-            leases = parse_dhcp_lease_file(config.leasefile, leases)
+            leases = dhcp_functions.parse_dhcp_lease_file(config.leasefile, leases)
         end
     end
     return leases
 end
 
-return dhcp
+return dhcp_functions

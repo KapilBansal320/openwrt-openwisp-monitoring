@@ -1,5 +1,1 @@
-subnet 239.252.197.0 netmask 255.255.255.0 {
-      range 239.252.197.10 239.252.197.107;
-      default-lease-time 600;
-      max-lease-time 7200;
-    }
+1620788343 e8:6a:64:3e:4a:3c 192.168.1.136 FRIDAY 01:e8:6a:64:3e:4a:3c
