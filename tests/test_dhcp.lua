@@ -7,7 +7,10 @@ package.loaded.uci = {
     cursor = function()
         return {
             get_all = function(...)
-            	return dhcp_data.config
+                local arg = {...}
+                if arg[2]=='dhcp' then
+                    return dhcp_data.config
+                end
             end
         }
     end
@@ -29,6 +32,7 @@ end
 
 function test_dhcp_leases()
 	luaunit.assertEquals(dhcp_functions.get_dhcp_leases(), dhcp_data.leases)
+    luaunit.assertEquals(dhcp_functions.parse_dhcp_lease_file('/tmp/dhcp.leases',{}), dhcp_data.leases)
 end
 
 os.exit( luaunit.LuaUnit.run() )
