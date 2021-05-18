@@ -50,4 +50,8 @@ function functions.dict_merge(source, destination)
     return destination
 end
 
+function functions.is_excluded(name)
+    return name == 'lo'
+end
+
 return functions

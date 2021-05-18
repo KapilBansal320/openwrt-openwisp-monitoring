@@ -102,7 +102,7 @@ function interface_functions.get_addresses(name)
             end
             for _, address in pairs(interface['ipv4-address']) do
                 table.insert(addresses_list, address['address'])
-                new_address = new_address_array(address, interface, 'ipv4')
+                new_address = interface_functions.new_address_array(address, interface, 'ipv4')
                 table.insert(addresses, new_address)
             end
             for _, address in pairs(interface['ipv6-address']) do
@@ -114,7 +114,7 @@ function interface_functions.get_addresses(name)
     end
     for i = 1, #nixio_data do
         if nixio_data[i].name == name then
-            if not is_excluded(name) then
+            if not utils.is_excluded(name) then
                 family = nixio_data[i].family
                 addr = nixio_data[i].addr
                 if family == 'inet' then

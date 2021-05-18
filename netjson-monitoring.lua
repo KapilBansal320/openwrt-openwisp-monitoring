@@ -71,10 +71,6 @@ if traffic_monitored and traffic_monitored ~= '*' then
     end
 end
 
-function is_excluded(name)
-    return name == 'lo'
-end
-
 -- collect device data
 network_status = ubus:call('network.device', 'status', {})
 wireless_status = ubus:call('network.wireless', 'status', {})
@@ -91,7 +87,7 @@ for radio_name, radio in pairs(wireless_status) do
     for i, interface in ipairs(radio.interfaces) do
         name = interface.ifname
         local is_mesh = false
-        if name and not is_excluded(name) then
+        if name and not utils.is_excluded(name) then
             iwinfo = ubus:call('iwinfo', 'info', {
                 device = name
             })
@@ -147,7 +143,7 @@ end
 -- collect interface stats
 for name, interface in pairs(network_status) do
     -- only collect data from iterfaces which have not been excluded
-    if not is_excluded(name) then
+    if not utils.is_excluded(name) then
         netjson_interface = {
             name = name,
             type = string.lower(interface.type),
