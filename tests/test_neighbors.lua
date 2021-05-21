@@ -13,7 +13,7 @@ io.popen = function(arg)
 	elseif arg == 'ip -json neigh 2> /dev/null' then
 		return io.open(test_file_dir .. 'ip_json_neigh.txt')
 	elseif arg == 'ip neigh 2> /dev/null' then
-		return io.open(test_file_dir .. 'ip neigh.txt')
+		return io.open(test_file_dir .. 'ip_neigh.txt')
 	end
 end
 

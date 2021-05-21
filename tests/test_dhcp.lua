@@ -1,5 +1,4 @@
 package.path = package.path .. ";../?.lua"
-local inspect = require('inspect')
 local test_file_dir = './test_files/'
 
 local dhcp_data = require('test_files/dhcp_data')

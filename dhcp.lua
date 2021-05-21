@@ -1,7 +1,6 @@
 -- retrieve dhcp leases
 uci = require('uci')
 uci_cursor = uci.cursor()
-inspect = require('inspect')
 utils = require('utils')
 
 dhcp_functions = {}
