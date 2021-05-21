@@ -1,9 +1,9 @@
 -- retrieve dhcp leases
-uci = require('uci')
-uci_cursor = uci.cursor()
-utils = require('utils')
+local uci = require('uci')
+local uci_cursor = uci.cursor()
+local utils = require('utils')
 
-dhcp_functions = {}
+local dhcp_functions = {}
 
 function dhcp_functions.parse_dhcp_lease_file(path, leases)
     local f = io.open(path, 'r')
@@ -32,7 +32,7 @@ function dhcp_functions.get_dhcp_leases()
         return nil
     end
 
-    for name, config in pairs(dhcp_configs) do
+    for _, config in pairs(dhcp_configs) do
         if config and config['.type'] == 'dnsmasq' and config.leasefile then
             leases = dhcp_functions.parse_dhcp_lease_file(config.leasefile, leases)
         end

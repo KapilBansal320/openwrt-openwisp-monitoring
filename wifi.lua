@@ -1,11 +1,4 @@
-#!/usr/bin/env lua
-
-wifi = {}
-
--- takes ubus wireless.status clients output and converts it to NetJSON
-function netjson_clients(clients, is_mesh)
-    return (is_mesh and wifi.parse_iwinfo_clients(clients) or wifi.parse_hostapd_clients(clients))
-end
+local wifi = {}
 
 function wifi.parse_hostapd_clients(clients)
   local data = {}
@@ -18,8 +11,8 @@ end
 
 function wifi.parse_iwinfo_clients(clients)
   local data = {}
-  for i, p in pairs(clients) do
-      client = {}
+  for _, p in pairs(clients) do
+      local client = {}
       client.ht = p.rx.ht
       client.mac = p.mac
       client.authorized = p.authorized
@@ -32,6 +25,11 @@ function wifi.parse_iwinfo_clients(clients)
       table.insert(data, client)
   end
   return data
+end
+
+-- takes ubus wireless.status clients output and converts it to NetJSON
+function wifi.netjson_clients(clients, is_mesh)
+    return (is_mesh and wifi.parse_iwinfo_clients(clients) or wifi.parse_hostapd_clients(clients))
 end
 
 return wifi

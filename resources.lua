@@ -1,16 +1,12 @@
 -- retrieve resources usage
-utils = require('utils')
-uci = require('uci')
-uci_cursor = uci.cursor()
-
-resources = {}
+local resources = {}
 
 function resources.parse_disk_usage()
-    file = io.popen('df')
-    disk_usage_info = {}
+    local file = io.popen('df')
+    local disk_usage_info = {}
     for line in file:lines() do
         if line:sub(1, 10) ~= 'Filesystem' then
-            filesystem, size, used, available, percent, location =
+            local filesystem, size, used, available, percent, location =
                 line:match('(%S+)%s+(%S+)%s+(%S+)%s+(%S+)%s+(%S+)%s+(%S+)')
             if filesystem ~= 'tmpfs' and not string.match(filesystem, 'overlayfs') then
                 percent = percent:gsub('%W', '')
@@ -31,8 +27,8 @@ function resources.parse_disk_usage()
 end
 
 function resources.get_cpus()
-    processors = io.popen('cat /proc/cpuinfo | grep -c processor')
-    cpus = tonumber(processors:read('*a'))
+    local processors = io.popen('cat /proc/cpuinfo | grep -c processor')
+    local cpus = tonumber(processors:read('*a'))
     processors:close()
     return cpus
 end

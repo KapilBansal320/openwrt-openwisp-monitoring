@@ -1,22 +1,23 @@
 -- retrieve interfaces information
-utils = require('utils')
-nixio = require('nixio')
-ubus_lib = require('ubus')
-ubus = ubus_lib.connect()
-uci = require('uci')
+local utils = require('utils')
+local cjson = require('cjson')
+local nixio = require('nixio')
+nixio_data = nixio.getifaddrs()
 
-uci_cursor = uci.cursor()
+local uci = require('uci')
+local uci_cursor = uci.cursor()
+
+local ubus_lib = require('ubus')
+local ubus = ubus_lib.connect()
 if not ubus then
     error('Failed to connect to ubusd')
 end
+local interface_data = ubus:call('network.interface', 'dump', {})
 
-interface_functions = {}
+local interface_functions = {}
 
-interface_data = ubus:call('network.interface', 'dump', {})
-nixio_data = nixio.getifaddrs()
-
-specialized_interfaces = {
-    modemmanager = function(name, interface)
+local specialized_interfaces = {
+    modemmanager = function(_, interface)
         local modem = uci_cursor.get('network', interface['interface'], 'device')
         local info = {}
 
@@ -75,11 +76,11 @@ function interface_functions.find_default_gateway(routes)
 end
 
 function interface_functions.new_address_array(address, interface, family)
-    proto = interface['proto']
+    local proto = interface['proto']
     if proto == 'dhcpv6' then
         proto = 'dhcp'
     end
-    new_address = {
+    local new_address = {
         address = address['address'],
         mask = address['mask'],
         proto = proto,
@@ -91,23 +92,20 @@ end
 
 -- collect interface addresses
 function interface_functions.get_addresses(name)
-    addresses = {}
-    interface_list = interface_data['interface']
-    addresses_list = {}
+    local addresses = {}
+    local proto = nil
+    local interface_list = interface_data['interface']
+    local addresses_list = {}
     for _, interface in pairs(interface_list) do
         if interface['l3_device'] == name then
-            proto = interface['proto']
-            if proto == 'dhcpv6' then
-                proto = 'dhcp'
-            end
             for _, address in pairs(interface['ipv4-address']) do
                 table.insert(addresses_list, address['address'])
-                new_address = interface_functions.new_address_array(address, interface, 'ipv4')
+                local new_address = interface_functions.new_address_array(address, interface, 'ipv4')
                 table.insert(addresses, new_address)
             end
             for _, address in pairs(interface['ipv6-address']) do
                 table.insert(addresses_list, address['address'])
-                new_address = new_address_array(address, interface, 'ipv6')
+                local new_address = interface_functions.new_address_array(address, interface, 'ipv6')
                 table.insert(addresses, new_address)
             end
         end
@@ -115,22 +113,22 @@ function interface_functions.get_addresses(name)
     for i = 1, #nixio_data do
         if nixio_data[i].name == name then
             if not utils.is_excluded(name) then
-                family = nixio_data[i].family
-                addr = nixio_data[i].addr
+                local family = nixio_data[i].family
+                local addr = nixio_data[i].addr
                 if family == 'inet' then
                     family = 'ipv4'
                     -- Since we don't already know this from the dump, we can
                     -- consider this dynamically assigned, this is the case for
                     -- example for OpenVPN interfaces, which get their address
                     -- from the DHCP server embedded in OpenVPN
-                    proto = 'dhcp'
+                   proto = 'dhcp'
                 elseif family == 'inet6' then
                     family = 'ipv6'
                     if utils.starts_with(addr, 'fe80') then
                         proto = 'static'
                     else
-                        ula = uci_cursor.get('network', 'globals', 'ula_prefix')
-                        ula_prefix = utils.split(ula, '::')[1]
+                        local ula = uci_cursor.get('network', 'globals', 'ula_prefix')
+                        local ula_prefix = utils.split(ula, '::')[1]
                         if utils.starts_with(addr, ula_prefix) then
                             proto = 'static'
                         else
@@ -155,7 +153,7 @@ function interface_functions.get_addresses(name)
 end
 
 function interface_functions.get_interface_info(name, netjson_interface)
-    info = {
+    local info = {
         dns_search = nil,
         dns_servers = nil
     }
@@ -189,7 +187,7 @@ function interface_functions.get_vpn_interfaces()
         return {}
     end
 
-    for name, config in pairs(items) do
+    for _, config in pairs(items) do
         if config and config.dev then
             vpn_interfaces[config.dev] = true
         end

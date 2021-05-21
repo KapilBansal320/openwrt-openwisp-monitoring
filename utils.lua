@@ -1,4 +1,4 @@
-functions = {}
+local functions = {}
 -- split function
 function functions.split(str, pat)
     local t = {}
@@ -20,7 +20,7 @@ function functions.split(str, pat)
 end
 
 function functions.has_value(tab, val)
-    for index, value in ipairs(tab) do
+    for _, value in ipairs(tab) do
         if value == val then
             return true
         end
@@ -37,7 +37,7 @@ function functions.is_table_empty(table_)
 end
 
 function functions.array_concat(source, destination)
-    table.foreach(source, function(key, value)
+    table.foreach(source, function(_, value)
         table.insert(destination, value)
     end)
     return destination

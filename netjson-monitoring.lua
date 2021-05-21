@@ -1,25 +1,23 @@
 #!/usr/bin/env lua
 -- retrieve monitoring information
 -- and return it as NetJSON Output
-ubus_lib = require('ubus')
-cjson = require('cjson')
-uci = require('uci')
-uci_cursor = uci.cursor()
+local cjson = require('cjson')
 
-interface_functions = require('interfaces')
-resources = require('resources')
-dhcp = require('dhcp')
-wifi = require('wifi')
-neighbors_functions = require('neighbors')
-utils = require('utils')
-
-ubus = ubus_lib.connect()
+local ubus_lib = require('ubus')
+local ubus = ubus_lib.connect()
 if not ubus then
     error('Failed to connect to ubusd')
 end
 
+local interface_functions = require('interfaces')
+local resources = require('resources')
+local dhcp = require('dhcp')
+local wifi = require('wifi')
+local neighbors_functions = require('neighbors')
+local utils = require('utils')
+
 -- helpers
-iwinfo_modes = {
+local iwinfo_modes = {
     ['Master'] = 'access_point',
     ['Client'] = 'station',
     ['Mesh Point'] = '802.11s',
@@ -27,15 +25,15 @@ iwinfo_modes = {
 }
 
 -- collect system info
-system_info = ubus:call('system', 'info', {})
-board = ubus:call('system', 'board', {})
-loadavg_output = io.popen('cat /proc/loadavg'):read()
+local system_info = ubus:call('system', 'info', {})
+local board = ubus:call('system', 'board', {})
+local loadavg_output = io.popen('cat /proc/loadavg'):read()
 loadavg_output = utils.split(loadavg_output, ' ')
-load_average = {tonumber(loadavg_output[1]), tonumber(loadavg_output[2]), tonumber(loadavg_output[3])}
+local load_average = {tonumber(loadavg_output[1]), tonumber(loadavg_output[2]), tonumber(loadavg_output[3])}
 
 
 -- init netjson data structure
-netjson = {
+local netjson = {
     type = 'DeviceMonitoring',
     general = {
         hostname = board.hostname,
@@ -51,47 +49,48 @@ netjson = {
     }
 }
 
-dhcp_leases = dhcp.get_dhcp_leases()
+local dhcp_leases = dhcp.get_dhcp_leases()
 if not utils.is_table_empty(dhcp_leases) then
     netjson.dhcp_leases = dhcp_leases
 end
 
-neighbors = neighbors_functions.get_neighbors()
+local neighbors = neighbors_functions.get_neighbors()
 if not utils.is_table_empty(neighbors) then
     netjson.neighbors = neighbors
 end
 
 -- determine the interfaces to monitor
-traffic_monitored = arg[1]
-include_stats = {}
+local traffic_monitored = arg[1]
+local include_stats = {}
 if traffic_monitored and traffic_monitored ~= '*' then
     traffic_monitored = utils.split(traffic_monitored, ' ')
-    for i, name in pairs(traffic_monitored) do
+    for _, name in pairs(traffic_monitored) do
         include_stats[name] = true
     end
 end
 
 -- collect device data
-network_status = ubus:call('network.device', 'status', {})
-wireless_status = ubus:call('network.wireless', 'status', {})
-vpn_interfaces = interface_functions.get_vpn_interfaces()
-wireless_interfaces = {}
-interfaces = {}
-dns_servers = {}
-dns_search = {}
+local network_status = ubus:call('network.device', 'status', {})
+local wireless_status = ubus:call('network.wireless', 'status', {})
+local vpn_interfaces = interface_functions.get_vpn_interfaces()
+local wireless_interfaces = {}
+local interfaces = {}
+local dns_servers = {}
+local dns_search = {}
 
 
 -- collect relevant wireless interface stats
 -- (traffic and connected clients)
-for radio_name, radio in pairs(wireless_status) do
-    for i, interface in ipairs(radio.interfaces) do
-        name = interface.ifname
+for _, radio in pairs(wireless_status) do
+    for _, interface in ipairs(radio.interfaces) do
+        local name = interface.ifname
         local is_mesh = false
+        local clients = nil
         if name and not utils.is_excluded(name) then
-            iwinfo = ubus:call('iwinfo', 'info', {
+            local iwinfo = ubus:call('iwinfo', 'info', {
                 device = name
             })
-            netjson_interface = {
+            local netjson_interface = {
                 name = name,
                 type = 'wireless',
                 wireless = {
@@ -111,7 +110,7 @@ for radio_name, radio in pairs(wireless_status) do
                 }).results
                 is_mesh = true
             else
-              hostapd_output = ubus:call('hostapd.' .. name, 'get_clients', {})
+              local hostapd_output = ubus:call('hostapd.' .. name, 'get_clients', {})
               if hostapd_output then
                   clients = hostapd_output.clients
               end
@@ -124,11 +123,11 @@ for radio_name, radio in pairs(wireless_status) do
     end
 end
 
-function needs_inversion(interface)
+local function needs_inversion(interface)
     return interface.type == 'wireless' and interface.wireless.mode == 'access_point'
 end
 
-function invert_rx_tx(interface)
+local function invert_rx_tx(interface)
     for k, v in pairs(interface) do
         if string.sub(k, 0, 3) == "rx_" then
             local tx_key = "tx_" .. string.sub(k, 4)
@@ -144,7 +143,7 @@ end
 for name, interface in pairs(network_status) do
     -- only collect data from iterfaces which have not been excluded
     if not utils.is_excluded(name) then
-        netjson_interface = {
+        local netjson_interface = {
             name = name,
             type = string.lower(interface.type),
             up = interface.up,
@@ -160,7 +159,7 @@ for name, interface in pairs(network_status) do
             interface.type = netjson_interface.type
         end
         if interface.type == 'Network device' then
-            link_supported = interface['link-supported']
+            local link_supported = interface['link-supported']
             if link_supported and next(link_supported) then
                 netjson_interface.type = 'ethernet'
                 netjson_interface.link_supported = link_supported
@@ -179,11 +178,11 @@ for name, interface in pairs(network_status) do
             end
             netjson_interface.statistics = interface.statistics
         end
-        addresses = interface_functions.get_addresses(name)
+        local addresses = interface_functions.get_addresses(name)
         if next(addresses) then
             netjson_interface.addresses = addresses
         end
-        info = interface_functions.get_interface_info(name, netjson_interface)
+        local info = interface_functions.get_interface_info(name, netjson_interface)
         if info.stp ~= nil then
             netjson_interface.stp = info.stp
         end
