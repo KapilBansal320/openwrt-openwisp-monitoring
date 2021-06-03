@@ -47,7 +47,7 @@ make defconfig
 make -j$CORES tools/install
 make -j$CORES toolchain/install
 make -j$CORES package/openwrt-openwisp-monitoring/compile || exit 1
-
+tree -d
 mv $BUILD_DIR/openwrt/bin/packages/mips_24kc/openwisp $VERSIONED_DIR
 
 rm $LATEST_LINK || true
